@@ -5,12 +5,18 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# import os
-# DATABASE_URL=os.getenv("DATABASE_URL")
+import os
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# here we allow ourselves to pass interpolation vars to alembic.ini
+# fron the host env
+section = config.config_ini_section
+config.set_section_option(section, "DB_USER", os.environ.get("DB_USER"))
+config.set_section_option(section, "DB_PASS", os.environ.get("DB_PASSWORD"))
+
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
