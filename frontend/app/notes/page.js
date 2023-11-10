@@ -6,13 +6,14 @@ import { useState, useEffect } from 'react';
 export default function Notes() {
     const [note, setNote] = useState('');
     const [notes, setNotes] = useState([]);
+    const [clickedUpdate, setClickedUpdate]=useState(false);
+    const [updatedNote, setUpdatedNote]=useState('');
 
     useEffect(()=>{
         async function fetchNotes(){
             const res=await
             fetch(`${process.env.NEXT_PUBLIC_API_URL}/notes/`);
             const json=await res.json();
-            console.log(json);
             setNotes(json);
         }
         fetchNotes();
@@ -20,6 +21,14 @@ export default function Notes() {
 
     function handleChange(e){
         setNote(e.target.value);
+    }
+
+    function handleUpdateChange(e){
+        setUpdatedNote(e.target.value);
+    }
+
+    const toggleUpdate=()=>{
+        setClickedUpdate(!clickedUpdate);
     }
 
     async function handleSubmit(){
@@ -45,6 +54,46 @@ export default function Notes() {
         setNote('');
     }
 
+    async function handleDelete(id){
+        const res=await
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/notes/${id}`,{
+            method: 'DELETE'
+        })
+        setNotes(notes.filter((note)=>note.id!==id));
+    }
+
+    async function handleUpdate(id){
+        if (updatedNote.trim() === '') {
+            window.alert('Cannot submit empty note.')
+            return;
+        }
+
+        const res=await
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/notes/${id}`,{
+            method: 'PUT',
+            headers: {
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify({
+                text: updatedNote,
+                completed: false
+            })
+        })
+        const json=await res.json();
+        const updatedNotes=notes.map(note=>{
+            if (note.id===id){
+                return {...note, text: json.text};
+            }
+            return note;
+        });
+        setNotes(updatedNotes);
+        setUpdatedNote('');
+        toggleUpdate();
+    }
+
+
+
+
     return (
         <div>
             <Head>
@@ -65,8 +114,29 @@ export default function Notes() {
                 <div>
                 <ul>
                     {notes && notes.map((note)=>
-                    <li key={note.id} className='bg-yellow-100 m-3 p-3 border-yellow-200 border-2'>
-                        {note.text}
+                    <li key={note.id} className='bg-yellow-100 m-3 p-3 border-yellow-200 border-2 overflow-hidden'>
+                        {note.id}. {note.text}
+                        <div className='button_class'>
+                            <div>
+                            <button className="buttons" onClick={()=>handleDelete(note.id)}>
+                                Delete
+                            </button> 
+                            </div>
+                            <div>
+                            <button className="buttons" onClick={()=>toggleUpdate()}>
+                                Update
+                            </button> 
+                            </div>
+                        </div>
+                        {clickedUpdate && (
+                            <div>
+                                <textarea value={updatedNote} onChange={handleUpdateChange} className='mx-auto p-3 m-5 border border-black-500'>
+                                </textarea>
+                                <button onClick={()=>handleUpdate(note.id)}>
+                                    Update
+                                </button>
+                            </div>
+                        )}
                     </li>
                     )}
                 </ul>

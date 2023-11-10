@@ -2,7 +2,7 @@ import os
 import databases
 import sqlalchemy
 from typing import List
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
@@ -67,6 +67,15 @@ async def read_notes():
     query=notes.select()
     return await database.fetch_all(query)
 
+@app.get("/notes/{note_id}", response_model=Note)
+async def read_note(note_id: int):
+    existing_note=await database.fetch_one(notes.select().where(notes.c.id==note_id))
+    if existing_note is None:
+        raise HTTPException(status_code=404, detail="Note not found")
+        
+    return existing_note
+    
+
 @app.post("/notes/", response_model=Note)
 async def create_note(note: NoteIn):
     print(note)
@@ -74,6 +83,31 @@ async def create_note(note: NoteIn):
                                 completed=note.completed)
     last_record_id=await database.execute(query)
     return {**note.dict(), "id":last_record_id}
+
+@app.delete("/notes/{note_id}", response_model=dict)
+async def delete_note(note_id: int):
+    existing_note=await database.fetch_one(notes.select().where(notes.c.id==note_id))
+    if existing_note is None:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    delete_query=notes.delete().where(notes.c.id==note_id)
+    await database.execute(delete_query)
+    return {"message":"Note deleted successfully."}
+
+@app.put("/notes/{note_id}", response_model=Note)
+async def update_note(note_id: int, updated_note: NoteIn):
+    existing_note=await database.fetch_one(notes.select().where(notes.c.id==note_id))
+    if existing_note is None:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    update_query=notes.update().where(notes.c.id==note_id).values(
+        text=updated_note.text,
+        completed=updated_note.completed
+    )
+    await database.execute(update_query)
+    
+    updated_note_data={**existing_note, "text":updated_note.text, "completed": updated_note.completed}
+    return updated_note_data
 
 @app.get("/")
 def read_root():
