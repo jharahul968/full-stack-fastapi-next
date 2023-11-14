@@ -11,7 +11,7 @@ docker run --name frontend-notes -p 3000:3000 --rm --network network-notes front
 docker run --rm --name backend-notes -p 8000:8000 --network network-notes backend-notes
 
 
-This is to be done after creating docker images using docker build . -t <image-name>. Also, do <docker pull postgres> for postgres container.
+This is to be done after creating docker images using docker build . -t <image-name>. Also, do "docker pull postgres" for postgres container.
 
 # for backend
 
