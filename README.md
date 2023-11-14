@@ -1,5 +1,18 @@
 # Next, FastAPI and PostgreSQL Full Stack Notes App
 
+## to build using docker
+
+docker network create network-notes
+
+docker run -p 5432:5432 --network network-notes -e  POSTGRES_USER=rahul -e POSTGRES_PASSWORD=wwe --name postgres_db --rm postgres
+
+docker run --name frontend-notes -p 3000:3000 --rm --network network-notes frontend-notes
+
+docker run --rm --name backend-notes -p 8000:8000 --network network-notes backend-notes
+
+
+This is to be done after creating docker images using docker build . -t <image-name>. Also, do <docker pull postgres> for postgres container.
+
 # for backend
 
 ## nfp-backend
