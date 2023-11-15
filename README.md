@@ -1,5 +1,10 @@
 # Next, FastAPI and PostgreSQL Full Stack Notes App
 
+## to build using docker compose
+
+docker compose up
+docker compose exec backend-notes alembic upgrade head
+
 ## to build using docker
 
 docker network create network-notes

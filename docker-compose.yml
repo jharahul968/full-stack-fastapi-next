@@ -1,0 +1,55 @@
+version: '3'
+
+networks:
+  network-notes:
+    driver: bridge
+
+services:
+  postgres_db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: rahul
+      POSTGRES_USER: rahul
+      POSTGRES_PASSWORD: wwe
+    networks:
+      - network-notes
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "rahul", "-U", "rahul", "-h", "localhost", "-p", "5432"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - db:/var/lib/postgresql
+
+  backend-notes:
+    build: ./backend/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres_db
+    environment:
+      DB_USER: rahul
+      DB_PASSWORD: wwe
+      DB_URL: postgres://rahul:wwe@postgres_db:5432/rahul
+      DB_HOST: postgres_db
+      DB_PORT: 5432
+    networks:
+      - network-notes
+    restart: always
+    volumes:
+      - backend:/app
+
+  frontend-notes:
+    build: ./frontend/
+    ports:
+      - "3000:3000"
+    networks:
+      - network-notes
+    volumes:
+      - frontend:/app
+volumes:
+  db:
+  backend:
+  frontend:
